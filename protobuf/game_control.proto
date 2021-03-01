@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+option go_package = ".;generated";
+
+service GameControlService {
+    rpc StartGame(GameStartRequest) returns (GameStartResponse) {}
+}
+
+enum GameRole {
+    PLAYER_WHITE = 0;
+    PLAYER_BLACK = 1;
+    SPECTATOR = 2;
+}
+
+message GameStartRequest {
+    optional string game_id = 1;
+}
+
+message GameStartRole {
+    GameRole player_role = 1;
+    string game_id = 2;
+}
+
+message GameStartResponse {
+    optional GameStartRole game_data = 1;
+    optional string message = 2;
+}
+

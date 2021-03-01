@@ -1,0 +1,42 @@
+syntax = "proto3";
+option go_package = ".;generated";
+
+service GameplayService {
+    rpc MakeMoves(MoveRequest) returns (MoveResponse) {}
+    rpc BoardUpdateSubscription(BoardSubscriptionRequest) returns (stream BoardUpdate) {}
+}
+
+enum Tile {
+    NO_PIECE = 0;
+    WHITE = 1;
+    BLACK = 2;
+    WHITE_PROMOTED = 3;
+    BLACK_PROMOTED = 4;
+}
+
+message Move {
+    uint32 index_from = 1;
+    uint32 index_to = 2;
+}
+
+message BoardState {
+    repeated Tile board = 1;
+}
+
+message BoardSubscriptionRequest {
+    string game_id = 1;
+}
+
+message MoveRequest {
+    repeated Move move_set = 1;
+}
+
+message MoveResponse {
+    bool move_success = 1;
+    optional string message = 2;
+}
+
+message BoardUpdate {
+    BoardState board_state = 1;
+    repeated Move prev_move_set = 2;
+}
