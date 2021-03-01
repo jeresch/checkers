@@ -4,6 +4,7 @@
   "description": "Front-end client for checkers site",
   "main": "index.js",
   "scripts": {
+    "generate": "protoc --proto_path=../protobuf --js_out=src/generated --grpc-web_out=import_style=commonjs,mode=grpcwebtext:src/generated $(find ../protobuf -type f -name *.proto)",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -15,5 +16,11 @@
   "bugs": {
     "url": "https://github.com/MettyS/checkers/issues"
   },
-  "homepage": "https://github.com/MettyS/checkers#readme"
+  "homepage": "https://github.com/MettyS/checkers#readme",
+  "dependencies": {
+    "@grpc/grpc-js": "~1.0.5",
+    "@grpc/proto-loader": "~0.5.4",
+    "google-protobuf": "~3.14.0",
+    "grpc-web": "~1.2.1"
+  }
 }
