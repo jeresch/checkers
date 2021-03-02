@@ -1,7 +1,7 @@
 export const constants = {
     hostname: "localhost",
     port: "8080",
-    boardWidth: 200,
-    boardHeight: 200,
+    boardWidth: 400,
+    boardHeight: 400,
     boardDimension: 8,
 };
