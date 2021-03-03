@@ -49,11 +49,12 @@ const drawBoard = (ctx, state) => {
                 const tileState = state[stateIdx].gameState;
 
                 ctx.beginPath();
-                ctx.lineWidth = 5;
                 if (state[stateIdx].selectionState === true) {
                     ctx.strokeStyle = 'red';
+                    ctx.lineWidth = 5;
                 } else {
-                    ctx.strokeStyle = 'green';
+                    ctx.strokeStyle = 'black';
+                    ctx.lineWidth = 1
                 }
                 if (tileState === 'w' || tileState === 'wk') {
                     ctx.fillStyle = 'white';
@@ -80,6 +81,40 @@ const clearBoardSelections = (state) => {
     }
 }
 
+const moveIsValid = (state, fromIdx, toIdx) => {
+    const fromTile = state[fromIdx].gameState;
+    const fromRowIdx = Math.floor((fromIdx - 1) / 4);
+    const fromColIdx = (fromIdx - 1) % 4;
+    const fromEdge = (fromRowIdx % 2 === 0) ? (fromColIdx === 3) : (fromColIdx === 0);
+    let validTargetOffsets = [];
+    if (fromTile === 'w' || fromTile === 'wk' || fromTile === 'bk') {
+        const rowShift = (fromRowIdx % 2 === 0) ? 1 : -1;
+        validTargetOffsets.push(-4);
+        if (!fromEdge) {
+            validTargetOffsets.push(-4 + rowShift);
+        }
+    }
+    if (fromTile === 'b' || fromTile === 'bk' || fromTile === 'wk') {
+        const rowShift = (fromRowIdx % 2 === 0) ? -1 : 1;
+        validTargetOffsets.push(4);
+        if (!fromEdge) {
+            validTargetOffsets.push(4 + rowShift);
+        }
+    }
+
+    // TODO jump moves
+    console.log(validTargetOffsets, fromIdx, toIdx);
+
+    return validTargetOffsets.map((offset) => offset + fromIdx).includes(toIdx);
+};
+
+const doMove = (state, fromIdx, toIdx) => {
+    const stateType = state[fromIdx].gameState;
+    state[fromIdx].gameState = ' ';
+    state[fromIdx].selectionState = false;
+    state[toIdx].gameState = stateType;
+};
+
 const makeOnBoardClick = (ctx, state) => {
     return (event) => {
         const tileWidth = constants.boardWidth / constants.boardDimension;
@@ -89,10 +124,10 @@ const makeOnBoardClick = (ctx, state) => {
         const tileCol = Math.floor(boardX / tileWidth);
         const tileRow = Math.floor(boardY / tileHeight);
         const stateIdx = boardRowColToTileIdx(tileRow, tileCol);
-        console.log(stateIdx);
 
         let alreadySelectedIdxs = Object.keys(state)
-            .filter((key) => { return state[key].selectionState === true; });
+            .filter((key) => { return state[key].selectionState === true; })
+            .map(Number.parseInt);
 
         // Non-game tile
         if (!stateIdx) {
@@ -104,9 +139,21 @@ const makeOnBoardClick = (ctx, state) => {
         } 
         // One existing selection
         else if (alreadySelectedIdxs.length === 1) {
-            // TODO if target has piece, clear all selections and replace selection with target
-            // TODO if target empty and valid move, do move
-            // TODO if target empty and invalid move, clear all selections
+            const alreadySelectedIdx = alreadySelectedIdxs[0];
+            // If target has piece, clear selections and select target
+            if (state[stateIdx].gameState !== ' ') {
+                clearBoardSelections(state);
+                state[stateIdx].selectionState = true;
+            }
+            // If valid move, do move
+            else if (state[stateIdx].gameState === ' ' && moveIsValid(state, alreadySelectedIdx, stateIdx)) {
+                clearBoardSelections(state);
+                doMove(state, alreadySelectedIdx, stateIdx);
+            }
+            // If invalid move, clear selections
+            else if (state[stateIdx].gameState === ' ' && !moveIsValid(state, alreadySelectedIdx, stateIdx)) {
+                clearBoardSelections(state);
+            }
         }
         // New selection
         else if (alreadySelectedIdxs.length === 0) {
