@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"os"
+	"strconv"
 
 	gppb "github.com/MettyS/checkers/server/generated"
 	"google.golang.org/grpc"
@@ -32,7 +34,11 @@ func (s *server) MakeMoves(ctx context.Context, req *gppb.MoveRequest) *gppb.Mov
 // rpc BoardUpdateSubscription(BoardSubscriptionRequest) returns (stream BoardUpdate) {}
 
 func main() {
-	lis, err := net.Listen("tcp", ":9000")
+	port, err := strconv.Atoi(os.Getenv("SERVER_LISTEN_PORT"))
+	if err != nil {
+		log.Fatalln("SERVER_LISTEN_PORT env var is required")
+	}
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%v", port))
 
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
@@ -40,8 +46,8 @@ func main() {
 
 	checkersServer := grpc.NewServer()
 
-	s := server{}
-	gppb.RegisterGameplayServiceServer(checkersServer, &s)
+	//s := server{}
+	//gppb.RegisterGameplayServiceServer(checkersServer, &s)
 
 	if err := checkersServer.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %s", err)
