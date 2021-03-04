@@ -2,9 +2,11 @@
   "name": "checkers",
   "version": "1.0.0",
   "description": "Front-end client for checkers site",
-  "main": "index.js",
+  "private": true,
   "scripts": {
     "generate": "protoc --experimental_allow_proto3_optional --proto_path=../protobuf --js_out=src/generated --grpc-web_out=import_style=commonjs,mode=grpcwebtext:src/generated $(find ../protobuf -type f -name *.proto)",
+    "build": "npx webpack build",
+    "start": "npx webpack serve --open",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -22,5 +24,10 @@
     "@grpc/proto-loader": "~0.5.4",
     "google-protobuf": "~3.14.0",
     "grpc-web": "~1.2.1"
+  },
+  "devDependencies": {
+    "webpack": "~5.24.2",
+    "webpack-cli": "~4.5.0",
+    "webpack-dev-server": "^3.11.2"
   }
 }
