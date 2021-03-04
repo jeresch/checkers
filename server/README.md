@@ -1,4 +1,6 @@
-To build:
+To run:
 ```
-$ go generate
-$ go build
+$ source checkers/defaultdev.env
+$ cd checkers/server
+$ go run .
+```
