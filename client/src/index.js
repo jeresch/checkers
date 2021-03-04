@@ -88,7 +88,7 @@ const moveIsValid = (state, fromIdx, toIdx) => {
     const fromEdge = (fromRowIdx % 2 === 0) ? (fromColIdx === 3) : (fromColIdx === 0);
     let validTargetOffsets = [];
     if (fromTile === 'w' || fromTile === 'wk' || fromTile === 'bk') {
-        const rowShift = (fromRowIdx % 2 === 0) ? 1 : -1;
+        const rowShift = (fromRowIdx % 2 === 0) ? -1 : 1;
         validTargetOffsets.push(-4);
         if (!fromEdge) {
             validTargetOffsets.push(-4 + rowShift);
