@@ -1,6 +1,7 @@
 import constants from './constants';
+import BoardModel, { TileStatus } from './boardModel';
 
-function boardRowColToTileIdx(boardRow, boardCol) {
+function boardRowColToTileIdx(boardRow: number, boardCol: number): number {
   const tileRow = boardRow;
   const evenRow = tileRow % 2 === 0;
   if ((evenRow && (boardCol % 2 !== 0)) || (!evenRow && (boardCol % 2 === 0))) {
@@ -11,19 +12,29 @@ function boardRowColToTileIdx(boardRow, boardCol) {
   return stateIdx;
 }
 
+export interface BoardViewEventListener {
+  onSelectTile(tileIdx: number): void;
+}
+
 export default class BoardView {
-  constructor(canvas) {
+  canvas: HTMLCanvasElement;
+
+  ctx: CanvasRenderingContext2D;
+
+  selections: Record<number, boolean> = {};
+
+  eventListeners: Array<BoardViewEventListener> = [];
+
+  constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.canvas.addEventListener('click', this.onClick);
     this.ctx = canvas.getContext('2d');
-    this.selections = {};
     for (let i = 1; i < 32 + 1; i += 1) {
       this.selections[i] = false;
     }
-    this.eventListeners = [];
   }
 
-  draw(boardModel) {
+  draw(boardModel: BoardModel) {
     const tileWidth = constants.boardWidth / constants.boardDimension;
     const tileHeight = constants.boardHeight / constants.boardDimension;
     for (let row = 0; row < constants.boardDimension; row += 1) {
@@ -44,12 +55,12 @@ export default class BoardView {
             this.ctx.strokeStyle = 'black';
             this.ctx.lineWidth = 1;
           }
-          if (tileState === 'w' || tileState === 'wk') {
+          if (tileState === TileStatus.White || tileState === TileStatus.WhiteKing) {
             this.ctx.fillStyle = 'white';
-          } else if (tileState === 'b' || tileState === 'bk') {
+          } else if (tileState === TileStatus.Black || tileState === TileStatus.BlackKing) {
             this.ctx.fillStyle = 'gray';
           }
-          if (tileState === 'w' || tileState === 'wk' || tileState === 'b' || tileState === 'bk') {
+          if (tileState !== TileStatus.Empty) {
             const tileCenterX = col * tileWidth + tileWidth / 2;
             const tileCenterY = row * tileHeight + tileHeight / 2;
             const pieceRadiusX = tileWidth * 0.4;
@@ -65,11 +76,11 @@ export default class BoardView {
     }
   }
 
-  selectTile(tileIdx) {
+  selectTile(tileIdx: number) {
     this.selections[tileIdx] = true;
   }
 
-  currentlySelectedTiles() {
+  currentlySelectedTiles(): Array<number> {
     return Object.keys(this.selections)
       .filter((key) => this.selections[key])
       .map(Number.parseInt);
@@ -81,11 +92,11 @@ export default class BoardView {
     });
   }
 
-  addListener(listener) {
+  addListener(listener: BoardViewEventListener) {
     this.eventListeners.push(listener);
   }
 
-  onClick(event) {
+  onClick = (event: MouseEvent) => {
     const tileWidth = constants.boardWidth / constants.boardDimension;
     const tileHeight = constants.boardHeight / constants.boardDimension;
     const boardX = event.offsetX;
@@ -94,5 +105,5 @@ export default class BoardView {
     const tileRow = Math.floor(boardY / tileHeight);
     const tileIdx = boardRowColToTileIdx(tileRow, tileCol);
     this.eventListeners.forEach((l) => l.onSelectTile(tileIdx));
-  }
+  };
 }

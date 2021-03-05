@@ -1,7 +1,20 @@
 import panic from './util';
+import { GameControlServiceClient as GameControlGrpcServiceClient } from './generated/Game_controlServiceClientPb';
+import GameControlModel from './gameControlModel';
+import GameControlView from './gameControlView';
 
 export default class GameControlController {
-  constructor(gameControlGrpcServiceClient, gameControlModel, gameControlView) {
+  gameControlGrpcServiceClient: GameControlGrpcServiceClient;
+
+  gameControlModel: GameControlModel;
+
+  gameControlView: GameControlView;
+
+  constructor(
+    gameControlGrpcServiceClient: GameControlGrpcServiceClient,
+    gameControlModel: GameControlModel,
+    gameControlView: GameControlView,
+  ) {
     this.gameControlGrpcServiceClient = gameControlGrpcServiceClient;
     this.gameControlModel = gameControlModel;
     this.gameControlView = gameControlView;
