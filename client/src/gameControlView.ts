@@ -6,9 +6,15 @@ export interface GameControlViewEventListener {
 export default class GameControlView {
   eventListeners: Array<GameControlViewEventListener> = [];
 
+  createGameButton: HTMLButtonElement;
+
+  joinGameButton: HTMLButtonElement;
+
   constructor(createGameButton: HTMLButtonElement, joinGameButton: HTMLButtonElement) {
-    createGameButton.addEventListener('click', this.onClickCreateGame);
-    joinGameButton.addEventListener('click', this.onClickJoinGame);
+    this.createGameButton = createGameButton;
+    this.joinGameButton = joinGameButton;
+    this.createGameButton.addEventListener('click', this.onClickCreateGame);
+    this.joinGameButton.addEventListener('click', this.onClickJoinGame);
   }
 
   onClickCreateGame = () => {
@@ -21,5 +27,15 @@ export default class GameControlView {
 
   registerListener(listener: GameControlViewEventListener) {
     this.eventListeners.push(listener);
+  }
+
+  showInterface() {
+    this.createGameButton.removeAttribute('style');
+    this.joinGameButton.removeAttribute('style');
+  }
+
+  hideInterface() {
+    this.createGameButton.setAttribute('style', 'display:none');
+    this.joinGameButton.setAttribute('style', 'display:none');
   }
 }

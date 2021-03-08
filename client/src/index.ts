@@ -1,12 +1,12 @@
-import { GameControlServiceClient } from './generated/Game_controlServiceClientPb';
-import { GameplayServiceClient } from './generated/GameServiceClientPb';
 import constants from './constants';
 import BoardModel from './boardModel';
 import BoardView from './boardView';
 import BoardController from './boardController';
+import BoardServiceGrpc from './boardServiceGrpc';
 import GameControlModel from './gameControlModel';
 import GameControlView from './gameControlView';
 import GameControlController from './gameControlController';
+import GameControlServiceGrpc from './gameControlServiceGrpc';
 
 const canvas = <HTMLCanvasElement>document.getElementById('game-board');
 canvas.setAttribute('width', `${constants.boardWidth}`);
@@ -19,14 +19,14 @@ const joinGameButton = <HTMLButtonElement>document.getElementById('join-game-but
 const gameControlView = new GameControlView(createGameButton, joinGameButton);
 const gameControlModel = new GameControlModel();
 
-const gameplayServiceClient = new GameplayServiceClient('http://localhost:8080');
-const gameControlServiceClient = new GameControlServiceClient('http://localhost:8080');
+const boardService = new BoardServiceGrpc('http://localhost:8080');
+const gameControlService = new GameControlServiceGrpc('http://localhost:8080');
 
 const boardController = new BoardController(
-  gameplayServiceClient, boardModel, boardView, gameControlModel,
+  boardService, boardModel, boardView, gameControlModel,
 );
 const gameControlController = new GameControlController(
-  gameControlServiceClient, gameControlModel, gameControlView,
+  gameControlService, gameControlModel, gameControlView, boardController,
 );
 
 export { boardController, gameControlController };

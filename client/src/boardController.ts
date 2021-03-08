@@ -2,10 +2,10 @@ import panic from './util';
 import BoardModel, { TileStatus } from './boardModel';
 import BoardView, { BoardViewEventListener } from './boardView';
 import GameControlModel from './gameControlModel';
-import { GameplayServiceClient as GameplayGrpcServiceClient } from './generated/GameServiceClientPb';
+import { BoardService, BoardUpdate } from './boardService';
 
 export default class BoardController implements BoardViewEventListener {
-  gameplayGrpcServiceClient: GameplayGrpcServiceClient;
+  boardService: BoardService;
 
   boardModel: BoardModel;
 
@@ -14,12 +14,12 @@ export default class BoardController implements BoardViewEventListener {
   gameControlModel: GameControlModel;
 
   constructor(
-    gameplayGrpcServiceClient: GameplayGrpcServiceClient,
+    boardService: BoardService,
     boardModel: BoardModel,
     boardView: BoardView,
     gameControlModel: GameControlModel,
   ) {
-    this.gameplayGrpcServiceClient = gameplayGrpcServiceClient;
+    this.boardService = boardService;
     this.boardModel = boardModel;
     this.boardView = boardView;
     this.gameControlModel = gameControlModel;
@@ -56,5 +56,20 @@ export default class BoardController implements BoardViewEventListener {
     }
 
     this.boardView.draw(this.boardModel);
+  }
+
+  onNewGame() {
+    // TODO new board model
+    panic('unimplementd');
+    this.boardService.boardUpdateSubscription(
+      { gameId: this.gameControlModel.gameId },
+      (u) => this.onBoardUpdate(u),
+    );
+    this.boardView.draw(this.boardModel);
+  }
+
+  onBoardUpdate(boardUpdate: BoardUpdate) {
+    // TODO
+    panic(` ${this} unimplemented`);
   }
 }
