@@ -2,95 +2,109 @@ package controller
 
 import (
 	"context"
-	// "errors"
+
+	d "github.com/MettyS/checkers/server/domain"
+	"github.com/MettyS/checkers/server/gameplay"
 )
 
-// BoardSize the size/length of playable board squares stored linearly
-const BoardSize int32 = 32
+// GameList map list of all game instances, pairing a GameID with a game handler
+var GameList map[string]gameplay.Game
 
-// Tile typedef for Tile enumeration
-type Tile int32
-
-// Tile enumeration for representing the checker board squares contents
-const (
-	NoPiece Tile = iota
-	White
-	Black
-	WhitePromoted
-	BlackPromoted
-)
-
-// Move a piece 'move' containing current location and requested destination
-type Move struct {
-	IndexFrom uint32
-	IndexTo   uint32
+// TODO
+// d.GameStartRequest expected fields:
+// GameID string - optional
+func validateGameStartRequest(req d.GameStartRequest) (bool, string) {
+	return true, ""
 }
 
-// BoardState current state of the board represented by a slice of Tiles
-type BoardState struct {
-	Board []Tile
+// d.MoveRequest expected fields:
+// MoveSet []Move - required, not nil
+// PlayerID string - required, not empty
+// GameID string - required, not empty
+func validateMoveRequest(req d.MoveRequest) error {
+	if req.MoveSet == nil {
+		return d.Error{Message: "Field MoveSet required."}
+	} else if req.PlayerID == "" {
+		return d.Error{Message: "Field PlayerID must not be empty."}
+	} else if req.GameID == "" {
+		return d.Error{Message: "Field GameID must not be empty."}
+	}
+	return nil
 }
 
-// BoardSubscriptionRequest incomming request to join a game
-type BoardSubscriptionRequest struct {
-	GameID string
-}
-
-// MoveRequest incomming request to make one or more consecutive moves
-type MoveRequest struct {
-	MoveSet []Move
-}
-
-// MoveResponse outgoing response with MoveSuccess indicator and optional Message
-type MoveResponse struct {
-	MoveSuccess bool
-	Message     string
-}
-
-// BoardUpdate update state of board comprised of current state and previous move
-type BoardUpdate struct {
-	BoardState  BoardState
-	PrevMoveSet []Move
-}
-
-// GameRole type definition for GameRole enumeration
-type GameRole int32
-
-// GameRole enumeration to represent a player's role in game
-const (
-	PlayerWhite GameRole = iota
-	PlayerBlack
-	Spectator
-)
-
-// GameStartRequest incoming request to join and start a game
-type GameStartRequest struct {
-	GameID string
-}
-
-// GameStartRole user role information represented by GameRole and paired with GameID
-type GameStartRole struct {
-	PlayerRole GameRole
-	GameID     string
-}
-
-// GameStartResponse outgoing response of gamestart with user's role and optional message
-type GameStartResponse struct {
-	GameData GameStartRole
-	Message  string
+func validateGameExists(gameID string) error {
+	if _, exists := GameList[gameID]; !exists {
+		return d.Error{Message: "Game does not exist."}
+	}
+	return nil
 }
 
 // HandleMakeMoves TODO
-func HandleMakeMoves(ctx context.Context, req MoveRequest) (MoveResponse, error) {
-	return MoveResponse{}, nil
+func HandleMakeMoves(ctx context.Context, req d.MoveRequest) (d.MoveResponse, error) {
+	err := validateMoveRequest(req)
+
+	if err != nil {
+		return d.MoveResponse{
+			MoveSuccess: false,
+			Message:     err.Error(),
+		}, nil
+	}
+
+	err = validateGameExists(req.GameID)
+	if err != nil {
+		return d.MoveResponse{
+			MoveSuccess: false,
+			Message:     err.Error(),
+		}, nil
+	}
+
+	if gameInstance, exists := GameList[req.GameID]; exists {
+		err := gameInstance.AttemptMoves(req.PlayerID, req.MoveSet)
+		if err != nil {
+			return d.MoveResponse{
+				MoveSuccess: false,
+				Message:     err.Error(),
+			}, nil
+		}
+	} else {
+
+	}
+	return d.MoveResponse{}, nil
 }
 
 // HandleBoardUpdateSubscription TODO
-func HandleBoardUpdateSubscription(req BoardSubscriptionRequest) (BoardUpdate, error) {
-	return BoardUpdate{}, nil
+func HandleBoardUpdateSubscription(req d.BoardSubscriptionRequest) (d.BoardUpdate, error) {
+	return d.BoardUpdate{}, nil
 }
 
-// HandleStartGame TODO
-func HandleStartGame(req GameStartRequest) (GameStartResponse, error) {
-	return GameStartResponse{}, nil
+// HandleStartGame TODO - playerID && gameID randomize these
+func HandleStartGame(req d.GameStartRequest) (d.GameStartResponse, error) {
+	gameID := req.GameID
+	playerID := "RandomKeyChangeThis" // TODO
+
+	var playerRole d.GameRole
+	var err error
+	if gameInstance, exists := GameList[gameID]; exists {
+		playerRole, err = gameInstance.AddParticipant(playerID)
+	} else {
+		gameID = "RandomGameIDOverwriteChangeThis" // TODO
+		gameInstance = gameplay.CreateGameHandler()
+		playerRole, err = gameInstance.AddParticipant(playerID)
+
+		GameList[gameID] = gameInstance
+	}
+
+	if err != nil {
+		return d.GameStartResponse{
+			Message: err.Error(),
+		}, nil
+	}
+
+	return d.GameStartResponse{
+		GameData: d.GameStartRole{
+			PlayerRole: playerRole,
+			GameID:     gameID,
+			PlayerID:   playerID,
+		},
+	}, nil
 }

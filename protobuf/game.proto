@@ -29,6 +29,8 @@ message BoardSubscriptionRequest {
 
 message MoveRequest {
     repeated Move move_set = 1;
+    string player_id = 2;
+    string game_id = 3;
 }
 
 message MoveResponse {

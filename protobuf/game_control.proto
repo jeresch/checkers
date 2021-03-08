@@ -19,6 +19,7 @@ message GameStartRequest {
 message GameStartRole {
     GameRole player_role = 1;
     string game_id = 2;
+    string player_id = 3;
 }
 
 message GameStartResponse {

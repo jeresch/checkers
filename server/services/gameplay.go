@@ -3,7 +3,8 @@ package services
 import (
 	"context"
 
-	controller "github.com/MettyS/checkers/server/controller"
+	"github.com/MettyS/checkers/server/controller"
+	d "github.com/MettyS/checkers/server/domain"
 	pb "github.com/MettyS/checkers/server/generated"
 )
 
@@ -12,21 +13,23 @@ type GameplayServer struct {
 	pb.UnimplementedGameplayServiceServer
 }
 
-func convertMoveRequestInward(req *pb.MoveRequest) controller.MoveRequest {
-	domMoveRequest := controller.MoveRequest{}
-	domMoveRequest.MoveSet = make([]controller.Move, len(req.GetMoveSet()))
+func convertMoveRequestInward(req *pb.MoveRequest) d.MoveRequest {
+	domainMoveRequest := d.MoveRequest{}
+	domainMoveRequest.MoveSet = make([]d.Move, len(req.GetMoveSet()))
+	domainMoveRequest.GameID = req.GetGameId()
+	domainMoveRequest.PlayerID = req.GetPlayerId()
 
 	for _, m := range req.GetMoveSet() {
-		tempMove := controller.Move{
+		tempMove := d.Move{
 			IndexFrom: m.GetIndexFrom(),
 			IndexTo:   m.GetIndexTo(),
 		}
-		domMoveRequest.MoveSet = append(domMoveRequest.MoveSet, tempMove)
+		domainMoveRequest.MoveSet = append(domainMoveRequest.MoveSet, tempMove)
 	}
-	return domMoveRequest
+	return domainMoveRequest
 }
 
-func convertMoveResponseOutward(res controller.MoveResponse) *pb.MoveResponse {
+func convertMoveResponseOutward(res d.MoveResponse) *pb.MoveResponse {
 	pbMoveResponse := pb.MoveResponse{}
 	pbMoveResponse.MoveSuccess = res.MoveSuccess
 	pbMoveResponse.Message = &res.Message
@@ -34,19 +37,19 @@ func convertMoveResponseOutward(res controller.MoveResponse) *pb.MoveResponse {
 	return &pbMoveResponse
 }
 
-func convertBoardSubscriptionRequestInward(req *pb.BoardSubscriptionRequest) controller.BoardSubscriptionRequest {
-	domBoardSubscriptionRequest := controller.BoardSubscriptionRequest{
+func convertBoardSubscriptionRequestInward(req *pb.BoardSubscriptionRequest) d.BoardSubscriptionRequest {
+	domainBoardSubscriptionRequest := d.BoardSubscriptionRequest{
 		GameID: req.GetGameId(),
 	}
 
-	return domBoardSubscriptionRequest
+	return domainBoardSubscriptionRequest
 }
 
-func convertBoardUpdateOutward(res controller.BoardUpdate) *pb.BoardUpdate {
+func convertBoardUpdateOutward(res d.BoardUpdate) *pb.BoardUpdate {
 	pbBoardUpdate := pb.BoardUpdate{}
 
 	pbBoard := pb.BoardState{
-		Board: make([]pb.Tile, controller.BoardSize),
+		Board: make([]pb.Tile, d.BoardSize),
 	}
 	for _, t := range res.BoardState.Board {
 		pbBoard.Board = append(pbBoard.Board, pb.Tile(int32(t)))
@@ -67,26 +70,26 @@ func convertBoardUpdateOutward(res controller.BoardUpdate) *pb.BoardUpdate {
 
 // MakeMoves (context.Context, *MoveRequest) (*MoveResponse, error)
 func (s *GameplayServer) MakeMoves(ctx context.Context, req *pb.MoveRequest) (*pb.MoveResponse, error) {
-	domMoveRequest := convertMoveRequestInward(req)
-	domMoveResponse, err := controller.HandleMakeMoves(ctx, domMoveRequest)
+	domainMoveRequest := convertMoveRequestInward(req)
+	domainMoveResponse, err := controller.HandleMakeMoves(ctx, domainMoveRequest)
 
 	if err != nil {
 		return nil, err
 	}
 
-	pbMoveResponse := convertMoveResponseOutward(domMoveResponse)
+	pbMoveResponse := convertMoveResponseOutward(domainMoveResponse)
 	return pbMoveResponse, nil
 }
 
 // BoardUpdateSubscription (*BoardSubscriptionRequest, GameplayService_BoardUpdateSubscriptionServer) error
 func (s *GameplayServer) BoardUpdateSubscription(req *pb.BoardSubscriptionRequest, updateStream pb.GameplayService_BoardUpdateSubscriptionServer) error {
-	domBoardSubscriptionRequest := convertBoardSubscriptionRequestInward(req)
-	domBoardUpdate, err := controller.HandleBoardUpdateSubscription(domBoardSubscriptionRequest)
+	domainBoardSubscriptionRequest := convertBoardSubscriptionRequestInward(req)
+	domainBoardUpdate, err := controller.HandleBoardUpdateSubscription(domainBoardSubscriptionRequest)
 
 	if err != nil {
 		return err
 	}
 
-	pbBoardUpdate := convertBoardUpdateOutward(domBoardUpdate)
+	pbBoardUpdate := convertBoardUpdateOutward(domainBoardUpdate)
 	return updateStream.Send(pbBoardUpdate) // returns error
 }
