@@ -70,6 +70,6 @@ export default class BoardController implements BoardViewEventListener {
 
   onBoardUpdate(boardUpdate: BoardUpdate) {
     // TODO
-    panic(` ${this} unimplemented`);
+    panic(`${boardUpdate} ${this} unimplemented`);
   }
 }
