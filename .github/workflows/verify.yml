@@ -1,0 +1,67 @@
+name: Verify checkers
+
+on:
+  push:
+    branches:
+    - development
+  pull_request:
+    branches:
+    - development
+  workflow_dispatch:
+
+jobs:
+  server:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Setup protoc
+      uses: arduino/setup-protoc@v1
+    - name: Setup go
+      uses: actions/setup-go@v2
+    - name: Install go-grpc protoc plugin
+      run: go get google.golang.org/protobuf/cmd/protoc-gen-go google.golang.org/grpc/cmd/protoc-gen-go-grpc
+      working-directory: ./server
+    - name: Generate protobuf
+      run: go generate
+      working-directory: ./server
+    - name: Lint server
+      run: golint -set_exit_status ./...
+      working-directory: ./server
+    - name: Check formatting
+      run: |
+        unformatted=$(gofmt -l .)
+        if [ -! -z "$unformatted" ]; then exit 1; fi
+      working-directory: ./server
+    - name: Run unit tests
+      run: go test ./...
+      working-directory: ./server
+
+  client:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v2
+    - name: Setup protoc
+      uses: arduino/setup-protoc@v1
+    - name: Setup node
+      uses: actions/setup-node@v2
+    - name: Install grpc-web protoc plugin
+      run: |
+        wget https://github.com/grpc/grpc-web/releases/download/1.2.1/protoc-gen-grpc-web-1.2.1-linux-x86_64
+        mv ./protoc-gen-grpc-web-1.2.1-linux-x86_64 ./protoc-gen-grpc-web
+        chmod u+x ./protoc-gen-grpc-web
+      working-directory: ./client
+    - name: Install dependencies
+      run: npm install
+      working-directory: ./client
+    - name: Generate protobuf
+      run: npm run generate -- --plugin=./protoc-gen-grpc-web
+      working-directory: ./client
+    - name: Lint files
+      run: npm run lint
+      working-directory: ./client
+    - name: Run unit tests
+      run: npm test
+      working-directory: ./client
+    
