@@ -2,7 +2,7 @@ import panic from './util';
 import { GameControlService, GameStartRequest, GameStartResponse } from './gameControlService';
 import GameControlModel from './gameControlModel';
 import GameControlView from './gameControlView';
-import BoardController from './boardController';
+import BoardController from './gameController';
 
 export default class GameControlController {
   gameControlServiceClient: GameControlService;

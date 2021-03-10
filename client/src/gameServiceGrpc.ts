@@ -1,6 +1,6 @@
 import {
-  BoardService, MoveRequest, MoveResponse, BoardUpdate, BoardSubscriptionRequest,
-} from './boardService';
+  GameService, MoveRequest, MoveResponse, BoardUpdate, BoardSubscriptionRequest,
+} from './gameService';
 import { GameplayServiceClient as GrpcServiceClient } from './generated/GameServiceClientPb';
 import {
   Move as GrpcMove,
@@ -10,7 +10,7 @@ import {
   BoardUpdate as GrpcBoardUpdate,
 } from './generated/game_pb';
 
-export default class BoardServiceGrpc implements BoardService {
+export default class GameServiceGrpc implements GameService {
   grpcServiceClient: GrpcServiceClient;
 
   constructor(hostport: string) {

@@ -1,8 +1,8 @@
 import constants from './constants';
 import BoardModel from './boardModel';
 import BoardView from './boardView';
-import BoardController from './boardController';
-import BoardServiceGrpc from './boardServiceGrpc';
+import GameController from './gameController';
+import GameServiceGrpc from './gameServiceGrpc';
 import GameControlModel from './gameControlModel';
 import GameControlView from './gameControlView';
 import GameControlController from './gameControlController';
@@ -19,14 +19,14 @@ const joinGameButton = <HTMLButtonElement>document.getElementById('join-game-but
 const gameControlView = new GameControlView(createGameButton, joinGameButton);
 const gameControlModel = new GameControlModel();
 
-const boardService = new BoardServiceGrpc('http://localhost:8080');
+const gameService = new GameServiceGrpc('http://localhost:8080');
 const gameControlService = new GameControlServiceGrpc('http://localhost:8080');
 
-const boardController = new BoardController(
-  boardService, boardModel, boardView, gameControlModel,
+const gameController = new GameController(
+  gameService, boardModel, boardView, gameControlModel,
 );
 const gameControlController = new GameControlController(
-  gameControlService, gameControlModel, gameControlView, boardController,
+  gameControlService, gameControlModel, gameControlView, gameController,
 );
 
-export { boardController, gameControlController };
+export { gameController, gameControlController };
