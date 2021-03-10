@@ -33,7 +33,7 @@ export interface BoardUpdate {
   prevMoveSetList: Array<Move>;
 }
 
-export interface BoardService {
+export interface GameService {
   makeMoves(request: MoveRequest): Promise<MoveResponse>;
   boardUpdateSubscription(
     request: BoardSubscriptionRequest, onUpdate: (update: BoardUpdate) => void): void;

@@ -4,10 +4,10 @@ import BoardModel, { TileStatus } from './boardModel';
 function boardRowColToTileIdx(boardRow: number, boardCol: number): number {
   const tileRow = boardRow;
   const evenRow = tileRow % 2 === 0;
-  if ((evenRow && (boardCol % 2 !== 0)) || (!evenRow && (boardCol % 2 === 0))) {
-    return undefined;
+  if ((evenRow && (boardCol % 2 === 0)) || (!evenRow && (boardCol % 2 !== 0))) {
+    return null;
   }
-  const tileCol = evenRow ? boardCol / 2 : (boardCol - 1) / 2;
+  const tileCol = evenRow ? (boardCol - 1) / 2 : boardCol / 2;
   const stateIdx = 4 * tileRow + tileCol + 1;
   return stateIdx;
 }
@@ -41,9 +41,9 @@ export default class BoardView {
       for (let col = 0; col < constants.boardDimension; col += 1) {
         this.ctx.beginPath();
         this.ctx.lineWidth = 0;
-        this.ctx.fillStyle = ((row + col) % 2 === 0) ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)';
+        this.ctx.fillStyle = ((row + col) % 2 === 0) ? 'white' : 'black';
         this.ctx.fillRect(col * tileWidth, row * tileHeight, tileWidth, tileHeight);
-        if ((row + col) % 2 === 0) {
+        if ((row + col) % 2 === 1) {
           const stateIdx = boardRowColToTileIdx(row, col);
           const tileState = boardModel.getTile(stateIdx);
 
