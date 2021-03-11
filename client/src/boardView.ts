@@ -1,37 +1,31 @@
 import constants from './constants';
 import BoardModel, { TileStatus } from './boardModel';
 
-function boardRowColToTileIdx(boardRow: number, boardCol: number): number {
-  const tileRow = boardRow;
-  const evenRow = tileRow % 2 === 0;
-  if ((evenRow && (boardCol % 2 === 0)) || (!evenRow && (boardCol % 2 !== 0))) {
-    return null;
-  }
-  const tileCol = evenRow ? (boardCol - 1) / 2 : boardCol / 2;
-  const stateIdx = 4 * tileRow + tileCol + 1;
-  return stateIdx;
-}
-
+/**
+ * Consumers of BoardView events must implement this interface and then
+ * register themselves with `BoardView.addListener`
+ */
 export interface BoardViewEventListener {
   onSelectTile(tileIdx: number): void;
 }
 
+/**
+ * Corresponds 1-1 with an HTMLCanvasElement, responsible for drawing to it and for consuming and
+ * re-raising its relevant events.
+ */
 export default class BoardView {
-  canvas: HTMLCanvasElement;
+  private canvas: HTMLCanvasElement;
 
-  ctx: CanvasRenderingContext2D;
+  private ctx: CanvasRenderingContext2D;
 
-  selections: Record<number, boolean> = {};
+  private selections: Set<number> = new Set();
 
-  eventListeners: Array<BoardViewEventListener> = [];
+  private eventListeners: Array<BoardViewEventListener> = [];
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
     this.canvas.addEventListener('click', this.onClick);
     this.ctx = canvas.getContext('2d');
-    for (let i = 1; i < 32 + 1; i += 1) {
-      this.selections[i] = false;
-    }
   }
 
   draw(boardModel: BoardModel) {
@@ -44,11 +38,11 @@ export default class BoardView {
         this.ctx.fillStyle = ((row + col) % 2 === 0) ? 'white' : 'black';
         this.ctx.fillRect(col * tileWidth, row * tileHeight, tileWidth, tileHeight);
         if ((row + col) % 2 === 1) {
-          const stateIdx = boardRowColToTileIdx(row, col);
+          const stateIdx = BoardView.boardRowColToTileIdx(row, col);
           const tileState = boardModel.getTile(stateIdx);
 
           this.ctx.beginPath();
-          if (this.selections[stateIdx] === true) {
+          if (this.selections.has(stateIdx)) {
             this.ctx.strokeStyle = 'red';
             this.ctx.lineWidth = 5;
           } else {
@@ -77,33 +71,40 @@ export default class BoardView {
   }
 
   selectTile(tileIdx: number) {
-    this.selections[tileIdx] = true;
+    this.selections.add(tileIdx);
   }
 
-  currentlySelectedTiles(): Array<number> {
-    return Object.keys(this.selections)
-      .filter((key) => this.selections[key])
-      .map(Number.parseInt);
+  currentlySelectedTiles(): Set<number> {
+    return this.selections;
   }
 
   clearBoardSelections() {
-    Object.keys(this.selections).forEach((idx) => {
-      this.selections[idx] = false;
-    });
+    this.selections.clear();
   }
 
   addListener(listener: BoardViewEventListener) {
     this.eventListeners.push(listener);
   }
 
-  onClick = (event: MouseEvent) => {
+  private onClick = (event: MouseEvent) => {
     const tileWidth = constants.boardWidth / constants.boardDimension;
     const tileHeight = constants.boardHeight / constants.boardDimension;
     const boardX = event.offsetX;
     const boardY = event.offsetY;
     const tileCol = Math.floor(boardX / tileWidth);
     const tileRow = Math.floor(boardY / tileHeight);
-    const tileIdx = boardRowColToTileIdx(tileRow, tileCol);
+    const tileIdx = BoardView.boardRowColToTileIdx(tileRow, tileCol);
     this.eventListeners.forEach((l) => l.onSelectTile(tileIdx));
   };
+
+  private static boardRowColToTileIdx(boardRow: number, boardCol: number): number {
+    const tileRow = boardRow;
+    const evenRow = tileRow % 2 === 0;
+    if ((evenRow && (boardCol % 2 === 0)) || (!evenRow && (boardCol % 2 !== 0))) {
+      return null;
+    }
+    const tileCol = evenRow ? (boardCol - 1) / 2 : boardCol / 2;
+    const stateIdx = 4 * tileRow + tileCol + 1;
+    return stateIdx;
+  }
 }
