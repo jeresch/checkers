@@ -3,6 +3,7 @@ import {
   TileStatus, MoveDirection,
   moveDirectionOfOffset, pieceCanMoveInDirection, moveDirectionIsJump,
   jumpDirectionToShiftDirection, canCapture, offsetFromMoveDirection,
+  pieceNeedsPromotion, promotedVersion,
 } from './boardUtil';
 
 export { TileStatus };
@@ -57,13 +58,19 @@ export default class BoardModel {
       const moveDirection = moveDirectionOfOffset(fromIdx, toIdx);
 
       if (moveDirectionIsJump(moveDirection)) {
-        const jumpedIdx = offsetFromMoveDirection(
+        const jumpedIdx = fromIdx + offsetFromMoveDirection(
           fromIdx, jumpDirectionToShiftDirection(moveDirection),
         );
         this.setTile(jumpedIdx, TileStatus.Empty);
       }
+
       this.setTile(toIdx, this.getTile(fromIdx));
       this.setTile(fromIdx, TileStatus.Empty);
+
+      // Handle promotions
+      if (pieceNeedsPromotion(toIdx, this.getTile(toIdx))) {
+        this.setTile(toIdx, promotedVersion(this.getTile(toIdx)));
+      }
     }
   }
 
@@ -97,8 +104,15 @@ export default class BoardModel {
   }
 
   moveSequenceIsValid(moves: Array<number>): boolean {
+    let pieceColor = this.getTile(moves[0]);
+    const movesAreChained = moves.length > 2;
     for (let i = 0; i < moves.length - 1; i += 1) {
-      if (!this.moveIsValid(moves[i], moves[i + 1], this.getTile(moves[0]))) {
+      if (pieceNeedsPromotion(moves[i], pieceColor)) {
+        pieceColor = promotedVersion(pieceColor);
+      }
+      const validMove = this.moveIsValid(moves[i], moves[i + 1], pieceColor);
+      const jumpMove = moveDirectionIsJump(moveDirectionOfOffset(moves[i], moves[i + 1]));
+      if (!validMove || (movesAreChained && !jumpMove)) {
         return false;
       }
     }

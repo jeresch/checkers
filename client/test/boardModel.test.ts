@@ -1,5 +1,4 @@
-/* eslint-disable prefer-arrow-callback, func-names, @typescript-eslint/no-unused-vars */
-// TODO re-enable no-unused-vars
+/* eslint-disable prefer-arrow-callback, func-names */
 import { suite, test } from 'mocha';
 import { assert } from 'chai';
 
@@ -240,27 +239,176 @@ suite('BoardModel', function () {
       assert.isFalse(board.moveIsValid(15, 24));
     });
   });
-  return; // TODO implement
   suite('piece promotion', function () {
     test('base pieces get promoted when reaching far row', function () {
-      assert.fail('unimplemented');
+      const beforeBoard = boardFromPicture(`
+        ..01..02..03..04
+        05..ww..07..08..
+        ..09..10..11..12
+        13..14..15..16..
+        ..17..18..19..20
+        21..22..23..24..
+        ..25..bb..27..28
+        29..30..31..32..
+      `);
+      const afterBoard = boardFromPicture(`
+        ..WW..02..03..04
+        05..06..07..08..
+        ..09..10..11..12
+        13..14..15..16..
+        ..17..18..19..20
+        21..22..23..24..
+        ..25..26..27..28
+        29..30..BB..32..
+      `);
+      assert.isTrue(beforeBoard.moveIsValid(6, 1));
+      assert.isTrue(beforeBoard.moveIsValid(26, 31));
+      beforeBoard.doMoveSequence([6, 1]);
+      beforeBoard.doMoveSequence([26, 31]);
+      assert.isTrue(boardsMatch(beforeBoard, afterBoard));
     });
     test('king pieces remain kings when moving to far row', function () {
-      assert.fail('unimplemented');
+      const beforeBoard = boardFromPicture(`
+        ..01..02..03..04
+        05..WW..07..08..
+        ..09..10..11..12
+        13..14..15..16..
+        ..17..18..19..20
+        21..22..23..24..
+        ..25..BB..27..28
+        29..30..31..32..
+      `);
+      const afterBoard = boardFromPicture(`
+        ..WW..02..03..04
+        05..06..07..08..
+        ..09..10..11..12
+        13..14..15..16..
+        ..17..18..19..20
+        21..22..23..24..
+        ..25..26..27..28
+        29..30..BB..32..
+      `);
+      beforeBoard.doMoveSequence([6, 1]);
+      beforeBoard.doMoveSequence([26, 31]);
+      assert.isTrue(boardsMatch(beforeBoard, afterBoard));
     });
     test('nothing happens when reaching near row', function () {
-      assert.fail('unimplemented');
+      const beforeBoard = boardFromPicture(`
+        ..01..02..03..04
+        05..BB..07..08..
+        ..09..10..11..12
+        13..14..15..16..
+        ..17..18..19..20
+        21..22..23..24..
+        ..25..WW..27..28
+        29..30..31..32..
+      `);
+      const afterBoard = boardFromPicture(`
+        ..BB..02..03..04
+        05..06..07..08..
+        ..09..10..11..12
+        13..14..15..16..
+        ..17..18..19..20
+        21..22..23..24..
+        ..25..26..27..28
+        29..30..WW..32..
+      `);
+      beforeBoard.doMoveSequence([6, 1]);
+      beforeBoard.doMoveSequence([26, 31]);
+      assert.isTrue(boardsMatch(beforeBoard, afterBoard));
     });
   });
   suite('multiple jump capture moves', function () {
     test('unpromoted pieces can jump multiple times forwards', function () {
-      assert.fail('unimplemented');
+      const beforeBoard = boardFromPicture(`
+        ..01..02..03..bb
+        05..06..07..ww..
+        ..bb..10..11..12
+        13..14..15..ww..
+        ..bb..18..19..20
+        21..22..23..ww..
+        ..bb..26..27..28
+        ww..30..31..32..
+      `);
+      const afterBoard = boardFromPicture(`
+        ..01..02..03..04
+        05..ww..07..08..
+        ..09..10..11..12
+        13..14..15..16..
+        ..17..18..19..20
+        21..22..23..24..
+        ..25..26..bb..28
+        29..30..31..32..
+      `);
+
+      const blackMoves = [4, 11, 20, 27];
+      const whiteMoves = [29, 22, 13, 6];
+      assert.isTrue(beforeBoard.moveSequenceIsValid(blackMoves));
+      assert.isTrue(beforeBoard.moveSequenceIsValid(whiteMoves));
+
+      beforeBoard.doMoveSequence(blackMoves);
+      beforeBoard.doMoveSequence(whiteMoves);
+      assert.isTrue(boardsMatch(beforeBoard, afterBoard));
     });
     test('kings can jump forwards and backwards', function () {
-      assert.fail('unimplemented');
+      const beforeBoard = boardFromPicture(`
+        ..01..02..03..WW
+        05..bb..bb..bb..
+        ..09..10..11..12
+        13..14..15..16..
+        ..17..18..19..20
+        21..22..23..24..
+        ..ww..ww..ww..28
+        BB..30..31..32..
+      `);
+      const afterBoard = boardFromPicture(`
+        ..01..02..03..04
+        05..06..07..08..
+        ..WW..10..11..12
+        13..14..15..16..
+        ..17..18..19..20
+        21..22..23..BB..
+        ..25..26..27..28
+        29..30..31..32..
+      `);
+      const whiteMoves = [4, 11, 2, 9];
+      const blackMoves = [29, 22, 31, 24];
+      assert.isTrue(beforeBoard.moveSequenceIsValid(whiteMoves));
+      assert.isTrue(beforeBoard.moveSequenceIsValid(blackMoves));
+
+      beforeBoard.doMoveSequence(whiteMoves);
+      beforeBoard.doMoveSequence(blackMoves);
+      assert.isTrue(boardsMatch(beforeBoard, afterBoard));
     });
     test('promotion can happen mid-move', function () {
-      assert.fail('unimplemented');
+      const beforeBoard = boardFromPicture(`
+        ..01..02..03..04
+        05..06..bb..bb..
+        ..09..10..11..ww
+        13..14..15..16..
+        ..17..18..19..20
+        bb..22..23..24..
+        ..ww..ww..27..28
+        29..30..31..32..
+      `);
+      const afterBoard = boardFromPicture(`
+        ..01..02..03..04
+        05..06..07..08..
+        ..09..WW..11..12
+        13..14..15..16..
+        ..17..18..19..20
+        21..22..BB..24..
+        ..25..26..27..28
+        29..30..31..32..
+      `);
+      const whiteMoves = [12, 3, 10];
+      const blackMoves = [21, 30, 23];
+      assert.isTrue(beforeBoard.moveSequenceIsValid(whiteMoves));
+      assert.isTrue(beforeBoard.moveSequenceIsValid(blackMoves));
+
+      beforeBoard.doMoveSequence(whiteMoves);
+      beforeBoard.doMoveSequence(blackMoves);
+      assert.isTrue(boardsMatch(beforeBoard, afterBoard));
     });
   });
 });

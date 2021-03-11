@@ -175,3 +175,20 @@ export function moveDirectionIsJump(direction: MoveDirection): boolean {
     MoveDirection.JumpDownRight,
   ].includes(direction);
 }
+
+export function pieceNeedsPromotion(pieceIdx: number, pieceStatus: TileStatus): boolean {
+  const blackPromotion = pieceStatus === TileStatus.Black && pieceIdx > 32 - 4;
+  const whitePromotion = pieceStatus === TileStatus.White && pieceIdx <= 4;
+  return blackPromotion || whitePromotion;
+}
+
+export function promotedVersion(unpromoted: TileStatus): TileStatus {
+  switch (unpromoted) {
+    case TileStatus.Black:
+      return TileStatus.BlackKing;
+    case TileStatus.White:
+      return TileStatus.WhiteKing;
+    default:
+      return undefined;
+  }
+}
