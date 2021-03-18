@@ -2,50 +2,59 @@ import panic from './util';
 import { GameControlService, GameStartRequest, GameStartResponse } from './gameControlService';
 import GameControlModel from './gameControlModel';
 import GameControlView from './gameControlView';
-import BoardController from './gameController';
+import GameControlModelLocal from './gameControlModelLocal';
+import GameController from './gameController';
+import GameControlModelRemote from './gameControlModelRemote';
 
 export default class GameControlController {
-  gameControlServiceClient: GameControlService;
+  private gameControlServiceClient: GameControlService;
 
-  gameControlModel: GameControlModel;
+  private gameControlModel: GameControlModel;
 
-  gameControlView: GameControlView;
+  private gameControlView: GameControlView;
 
-  boardController: BoardController;
+  private gameController: GameController;
 
   constructor(
-    gameControlServiceClient: GameControlService,
-    gameControlModel: GameControlModel,
     gameControlView: GameControlView,
-    boardController: BoardController,
+    gameController: GameController,
   ) {
-    this.gameControlServiceClient = gameControlServiceClient;
-    this.gameControlModel = gameControlModel;
     this.gameControlView = gameControlView;
-    this.gameControlView.registerListener(this);
-    this.boardController = boardController;
+    this.gameControlView.registerCallbacks({
+      onCreateRemoteGame: this.onCreateRemoteGameRequest.bind(this),
+      onJoinRemoteGame: this.onJoinRemoteGameRequest.bind(this),
+      onCreateLocalGame: this.onCreateLocalGameRequest.bind(this),
+    });
+    this.gameController = gameController;
   }
 
-  onCreateGameRequest() {
-    if (this.gameControlModel.gameActive) {
-      panic('game already in progress');
-      return;
-    }
+  private onCreateRemoteGameRequest() {
     const gameStartRequest: GameStartRequest = {};
     this.gameControlServiceClient.startGame(gameStartRequest)
       .then((gameStartResponse: GameStartResponse) => {
         const gameId = gameStartResponse.gameData?.gameId;
         const gameRole = gameStartResponse.gameData?.playerRole;
-        this.gameControlModel.newGame(gameId, gameRole);
-        this.boardController.onNewGame();
+        this.gameControlModel = new GameControlModelRemote(gameId, gameRole);
+
+        this.gameController.onNewGame(this.gameControlModel, true);
       }, () => panic('request rejected'));
   }
 
-  onJoinGameRequest() {
-    if (this.gameControlModel.gameActive) {
-      panic('game already in progress');
-      return;
-    }
-    panic('TODO unimplemented');
+  private onJoinRemoteGameRequest(gameId: string) {
+    const gameJoinRequest: GameStartRequest = { gameId };
+    this.gameControlServiceClient.startGame(gameJoinRequest)
+      .then((gameStartResponse: GameStartResponse) => {
+        const responseGameId = gameStartResponse.gameData?.gameId;
+        const gameRole = gameStartResponse.gameData?.playerRole;
+        this.gameControlModel = new GameControlModelRemote(responseGameId, gameRole);
+
+        this.gameController.onNewGame(this.gameControlModel, true);
+      });
+  }
+
+  private onCreateLocalGameRequest() {
+    this.gameControlView.hideInterface();
+    this.gameControlModel = new GameControlModelLocal('LOCAL');
+    this.gameController.onNewGame(this.gameControlModel, false);
   }
 }

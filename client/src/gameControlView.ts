@@ -1,41 +1,63 @@
-export interface GameControlViewEventListener {
-  onCreateGameRequest(): void;
-  onJoinGameRequest(): void;
+export interface GameControlViewCallbacks {
+  onCreateRemoteGame?(): void;
+  onJoinRemoteGame?(gameId: string): void;
+  onCreateLocalGame?(): void;
 }
 
 export default class GameControlView {
-  eventListeners: Array<GameControlViewEventListener> = [];
+  private createRemoteGameCallbacks: Array<Function> = [];
 
-  createGameButton: HTMLButtonElement;
+  private joinRemoteGameCallbacks: Array<Function> = [];
 
-  joinGameButton: HTMLButtonElement;
+  private createLocalGameCallbacks: Array<Function> = [];
 
-  constructor(createGameButton: HTMLButtonElement, joinGameButton: HTMLButtonElement) {
-    this.createGameButton = createGameButton;
-    this.joinGameButton = joinGameButton;
-    this.createGameButton.addEventListener('click', this.onClickCreateGame);
-    this.joinGameButton.addEventListener('click', this.onClickJoinGame);
+  private domViewContainer: HTMLDivElement;
+
+  private joinRemoteGameIdTextField:HTMLInputElement;
+
+  constructor(
+    domViewContainer: HTMLDivElement,
+    createRemoteGameButton: HTMLButtonElement,
+    joinRemoteGameButton: HTMLButtonElement,
+    joinRemoteGameIdTextField: HTMLInputElement,
+    createLocalGameButton: HTMLButtonElement,
+  ) {
+    this.domViewContainer = domViewContainer;
+    this.joinRemoteGameIdTextField = joinRemoteGameIdTextField;
+    createRemoteGameButton.addEventListener('click', this.onClickCreateRemoteGame.bind(this));
+    joinRemoteGameButton.addEventListener('click', this.onClickJoinRemoteGame.bind(this));
+    createLocalGameButton.addEventListener('click', this.onClickCreateLocalGame.bind(this));
   }
 
-  onClickCreateGame = () => {
-    this.eventListeners.forEach((l) => l.onCreateGameRequest());
-  };
-
-  onClickJoinGame = () => {
-    this.eventListeners.forEach((l) => l.onJoinGameRequest());
-  };
-
-  registerListener(listener: GameControlViewEventListener) {
-    this.eventListeners.push(listener);
+  registerCallbacks(callbacks: GameControlViewCallbacks) {
+    if (callbacks.onCreateRemoteGame) {
+      this.createRemoteGameCallbacks.push(callbacks.onCreateRemoteGame);
+    }
+    if (callbacks.onJoinRemoteGame) {
+      this.joinRemoteGameCallbacks.push(callbacks.onJoinRemoteGame);
+    }
+    if (callbacks.onCreateLocalGame) {
+      this.createLocalGameCallbacks.push(callbacks.onCreateLocalGame);
+    }
   }
 
   showInterface() {
-    this.createGameButton.removeAttribute('style');
-    this.joinGameButton.removeAttribute('style');
+    this.domViewContainer.style.display = 'block';
   }
 
   hideInterface() {
-    this.createGameButton.setAttribute('style', 'display:none');
-    this.joinGameButton.setAttribute('style', 'display:none');
+    this.domViewContainer.style.display = 'none';
+  }
+
+  private onClickCreateRemoteGame() {
+    this.createRemoteGameCallbacks.forEach((c) => c());
+  }
+
+  private onClickJoinRemoteGame() {
+    this.joinRemoteGameCallbacks.forEach((c) => c(this.joinRemoteGameIdTextField.textContent));
+  }
+
+  private onClickCreateLocalGame() {
+    this.createLocalGameCallbacks.forEach((c) => c());
   }
 }
