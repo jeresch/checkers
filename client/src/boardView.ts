@@ -1,12 +1,14 @@
 import constants from './constants';
 import BoardModel, { TileStatus } from './boardModel';
+import { BoardUpdate } from './gameService';
 
 /**
  * Consumers of BoardView events must implement this interface and then
  * register themselves with `BoardView.addListener`
  */
-export interface BoardViewEventListener {
-  onSelectTile(tileIdx: number): void;
+export interface BoardViewEventCallbacks {
+  onSelectTile?(tileIdx: number): void;
+  onBoardUpdate?(boardUpdate: BoardUpdate): void;
 }
 
 /**
@@ -20,7 +22,7 @@ export default class BoardView {
 
   private selections: Set<number> = new Set();
 
-  private eventListeners: Array<BoardViewEventListener> = [];
+  private onSelectTileCallbacks: Array<Function> = [];
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -82,8 +84,10 @@ export default class BoardView {
     this.selections.clear();
   }
 
-  addListener(listener: BoardViewEventListener) {
-    this.eventListeners.push(listener);
+  registerCallbacks(callbacks: BoardViewEventCallbacks) {
+    if (callbacks.onSelectTile) {
+      this.onSelectTileCallbacks.push(callbacks.onSelectTile);
+    }
   }
 
   private onClick = (event: MouseEvent) => {
@@ -94,7 +98,7 @@ export default class BoardView {
     const tileCol = Math.floor(boardX / tileWidth);
     const tileRow = Math.floor(boardY / tileHeight);
     const tileIdx = BoardView.boardRowColToTileIdx(tileRow, tileCol);
-    this.eventListeners.forEach((l) => l.onSelectTile(tileIdx));
+    this.onSelectTileCallbacks.forEach((cb) => cb(tileIdx));
   };
 
   private static boardRowColToTileIdx(boardRow: number, boardCol: number): number {

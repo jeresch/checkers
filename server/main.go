@@ -1,6 +1,6 @@
 package main
 
-//go:generate bash -c "protoc --experimental_allow_proto3_optional --proto_path=../protobuf --go_out=generated/ --go-grpc_out=generated/ $(find ../protobuf -type f -name *.proto)"
+//go:generate bash -c "protoc --experimental_allow_proto3_optional --proto_path=../protobuf --go_out=generated/ --go-grpc_out=generated/ --go_opt=module=github.com/MettyS/checkers/server/generated --go-grpc_opt=module=github.com/MettyS/checkers/server/generated $(find ../protobuf -type f -name *.proto)"
 
 import (
 	"fmt"

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = ".;generated";
+option go_package = "github.com/MettyS/checkers/server/generated";
 
 service GameControlService {
     rpc StartGame(GameStartRequest) returns (GameStartResponse) {}

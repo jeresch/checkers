@@ -48,9 +48,6 @@ function boardFromPicture(picture: string): BoardModel {
 }
 
 function boardsMatch(board1: BoardModel, board2: BoardModel): boolean {
-  if (board1.tiles.length !== board2.tiles.length) {
-    return false;
-  }
   for (let i = 1; i <= 32; i += 1) {
     if (board1.getTile(i) !== board2.getTile(i)) {
       return false;

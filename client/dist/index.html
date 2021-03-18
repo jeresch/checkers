@@ -6,12 +6,19 @@
         <title>Checkers</title>
     </head>
     <body>
-        <form>
-            <ul>
-                <li><button id="create-game-button">Create game</button></li>
-                <li><button id="join-game-button">Join game</button></li>
-            </ul>
-        </form>
+        <h1>Checkers</h1>
+        <div id="game-control-container">
+            <div>
+                <h2>Remote game</h2>
+                <button id="create-remote-game-btn">Create</button>
+                <input id="join-remote-game-id-field" type="text" />
+                <button id="join-remote-game-btn">Join</button>
+            </div>
+            <div>
+                <h2>Local game</h2>
+                <button id="create-local-game-btn">Create</button>
+            </div>
+        </div>
         <canvas id="game-board"></canvas>        
         <script type="text/javascript" src="./bundle.js" ></script>
     </body>
