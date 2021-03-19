@@ -11,7 +11,10 @@ func (d Error) Error() string {
 }
 
 // BoardSize the size/length of playable board squares stored linearly
-const BoardSize int32 = 32
+const BoardSize uint32 = 32
+
+// RowLength the number of playable tiles in a given row on the board
+const RowLength uint32 = 4
 
 // Tile typedef for Tile enumeration
 type Tile int32
