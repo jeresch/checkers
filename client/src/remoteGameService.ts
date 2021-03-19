@@ -15,26 +15,26 @@ export interface BoardState {
   boardList: Array<Tile>;
 }
 
-export interface BoardSubscriptionRequest {
+export interface RemoteBoardSubscriptionRequest {
   gameId?: string;
 }
 
-export interface MoveRequest {
+export interface RemoteMoveRequest {
   moveSetList: Array<Move>;
 }
 
-export interface MoveResponse {
+export interface RemoteMoveResponse {
   moveSuccess: boolean;
   message?: string;
 }
 
-export interface BoardUpdate {
+export interface RemoteBoardUpdate {
   boardState?: BoardState;
   prevMoveSetList: Array<Move>;
 }
 
-export interface GameService {
-  makeMoves(request: MoveRequest): Promise<MoveResponse>;
+export interface RemoteGameService {
+  makeMoves(request: RemoteMoveRequest): Promise<RemoteMoveResponse>;
   boardUpdateSubscription(
-    request: BoardSubscriptionRequest, onUpdate: (update: BoardUpdate) => void): void;
+    request: RemoteBoardSubscriptionRequest, onUpdate: (update: RemoteBoardUpdate) => void): void;
 }

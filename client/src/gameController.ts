@@ -3,18 +3,18 @@ import BoardModel, { TileStatus } from './boardModel';
 import BoardView from './boardView';
 import GameControlModel from './gameControlModel';
 import {
-  GameService,
-  BoardUpdate,
+  RemoteGameService,
+  RemoteBoardUpdate,
   Move,
-  MoveResponse,
-} from './gameService';
-import GameServiceGrpc from './gameServiceGrpc';
-import { GameRole } from './gameControlService';
+  RemoteMoveResponse,
+} from './remoteGameService';
+import GameServiceGrpc from './remoteGameServiceGrpc';
+import { GameRole } from './remoteGameControlService';
 
 export default class GameController {
   private serverAddress: string;
 
-  private gameService: GameService;
+  private gameService: RemoteGameService;
 
   private boardModel: BoardModel;
 
@@ -38,7 +38,7 @@ export default class GameController {
     this.boardModel = new BoardModel(emptyTiles);
 
     this.boardView.registerCallbacks({
-      onSelectTile: this.onSelectTile.bind(this),
+      onSelectTile: (idx) => this.onSelectTile(idx),
     });
     this.boardView.draw(this.boardModel);
   }
@@ -91,7 +91,7 @@ export default class GameController {
     this.boardView.draw(this.boardModel);
   }
 
-  private onBoardUpdate(boardUpdate: BoardUpdate) {
+  private onBoardUpdate(boardUpdate: RemoteBoardUpdate) {
     const moveSequence = [boardUpdate.prevMoveSetList[0].indexFrom];
     boardUpdate.prevMoveSetList.forEach((move: Move) => moveSequence.push(move.indexTo));
     this.doMoveSequence(moveSequence);
@@ -124,7 +124,7 @@ export default class GameController {
         });
       }
 
-      this.gameService.makeMoves({ moveSetList }).then((response: MoveResponse) => {
+      this.gameService.makeMoves({ moveSetList }).then((response: RemoteMoveResponse) => {
         if (!response.moveSuccess) {
           panic(`move request failed with error message: ${response.message}`);
         }

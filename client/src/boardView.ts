@@ -1,6 +1,5 @@
 import constants from './constants';
 import BoardModel, { TileStatus } from './boardModel';
-import { BoardUpdate } from './gameService';
 
 /**
  * Consumers of BoardView events must implement this interface and then
@@ -8,7 +7,6 @@ import { BoardUpdate } from './gameService';
  */
 export interface BoardViewEventCallbacks {
   onSelectTile?(tileIdx: number): void;
-  onBoardUpdate?(boardUpdate: BoardUpdate): void;
 }
 
 /**
@@ -26,7 +24,7 @@ export default class BoardView {
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
-    this.canvas.addEventListener('click', this.onClick);
+    this.canvas.addEventListener('click', (e) => this.onClick(e));
     this.ctx = canvas.getContext('2d');
   }
 
@@ -90,7 +88,7 @@ export default class BoardView {
     }
   }
 
-  private onClick = (event: MouseEvent) => {
+  private onClick(event: MouseEvent) {
     const tileWidth = constants.boardWidth / constants.boardDimension;
     const tileHeight = constants.boardHeight / constants.boardDimension;
     const boardX = event.offsetX;
@@ -99,7 +97,7 @@ export default class BoardView {
     const tileRow = Math.floor(boardY / tileHeight);
     const tileIdx = BoardView.boardRowColToTileIdx(tileRow, tileCol);
     this.onSelectTileCallbacks.forEach((cb) => cb(tileIdx));
-  };
+  }
 
   private static boardRowColToTileIdx(boardRow: number, boardCol: number): number {
     const tileRow = boardRow;

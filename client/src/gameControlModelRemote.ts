@@ -1,5 +1,5 @@
 import GameControlModel from './gameControlModel';
-import { GameRole } from './gameControlService';
+import { GameRole } from './remoteGameControlService';
 
 export default class GameControlModelRemote implements GameControlModel {
   gameId: string;

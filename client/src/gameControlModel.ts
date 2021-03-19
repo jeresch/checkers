@@ -1,4 +1,4 @@
-import { GameRole } from './gameControlService';
+import { GameRole } from './remoteGameControlService';
 
 export default interface GameControlModel {
   gameId: string;

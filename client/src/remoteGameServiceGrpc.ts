@@ -1,6 +1,6 @@
 import {
-  GameService, MoveRequest, MoveResponse, BoardUpdate, BoardSubscriptionRequest,
-} from './gameService';
+  GameService, RemoteMoveRequest, MoveResponse, BoardUpdate, BoardSubscriptionRequest,
+} from './remoteGameService';
 import { GameplayServiceClient as GrpcServiceClient } from './generated/GameServiceClientPb';
 import {
   Move as GrpcMove,
@@ -17,7 +17,7 @@ export default class GameServiceGrpc implements GameService {
     this.grpcServiceClient = new GrpcServiceClient(hostport);
   }
 
-  async makeMoves(request: MoveRequest): Promise<MoveResponse> {
+  async makeMoves(request: RemoteMoveRequest): Promise<MoveResponse> {
     const grpcRequest = new GrpcMoveRequest();
     request.moveSetList.forEach((move, idx) => {
       const grpcMove = new GrpcMove();

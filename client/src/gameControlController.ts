@@ -1,5 +1,5 @@
 import panic from './util';
-import { GameControlService, GameStartRequest, GameStartResponse } from './gameControlService';
+import { RemoteGameControlService, RemoteGameStartRequest, RemoteGameStartResponse } from './remoteGameControlService';
 import GameControlModel from './gameControlModel';
 import GameControlView from './gameControlView';
 import GameControlModelLocal from './gameControlModelLocal';
@@ -7,7 +7,7 @@ import GameController from './gameController';
 import GameControlModelRemote from './gameControlModelRemote';
 
 export default class GameControlController {
-  private gameControlServiceClient: GameControlService;
+  private gameControlServiceClient: RemoteGameControlService;
 
   private gameControlModel: GameControlModel;
 
@@ -21,17 +21,17 @@ export default class GameControlController {
   ) {
     this.gameControlView = gameControlView;
     this.gameControlView.registerCallbacks({
-      onCreateRemoteGame: this.onCreateRemoteGameRequest.bind(this),
-      onJoinRemoteGame: this.onJoinRemoteGameRequest.bind(this),
-      onCreateLocalGame: this.onCreateLocalGameRequest.bind(this),
+      onCreateRemoteGame: () => this.onCreateRemoteGameRequest(),
+      onJoinRemoteGame: (gameId) => this.onJoinRemoteGameRequest(gameId),
+      onCreateLocalGame: () => this.onCreateLocalGameRequest(),
     });
     this.gameController = gameController;
   }
 
   private onCreateRemoteGameRequest() {
-    const gameStartRequest: GameStartRequest = {};
+    const gameStartRequest: RemoteGameStartRequest = {};
     this.gameControlServiceClient.startGame(gameStartRequest)
-      .then((gameStartResponse: GameStartResponse) => {
+      .then((gameStartResponse: RemoteGameStartResponse) => {
         const gameId = gameStartResponse.gameData?.gameId;
         const gameRole = gameStartResponse.gameData?.playerRole;
         this.gameControlModel = new GameControlModelRemote(gameId, gameRole);
@@ -41,9 +41,9 @@ export default class GameControlController {
   }
 
   private onJoinRemoteGameRequest(gameId: string) {
-    const gameJoinRequest: GameStartRequest = { gameId };
+    const gameJoinRequest: RemoteGameStartRequest = { gameId };
     this.gameControlServiceClient.startGame(gameJoinRequest)
-      .then((gameStartResponse: GameStartResponse) => {
+      .then((gameStartResponse: RemoteGameStartResponse) => {
         const responseGameId = gameStartResponse.gameData?.gameId;
         const gameRole = gameStartResponse.gameData?.playerRole;
         this.gameControlModel = new GameControlModelRemote(responseGameId, gameRole);
